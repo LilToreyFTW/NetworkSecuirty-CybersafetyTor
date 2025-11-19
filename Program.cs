@@ -54,12 +54,49 @@ static class Program
         // Check if user has configured their IPs
         if (!userSetup.IsUserConfigured())
         {
-            // Run interactive setup for new users
-            var userConfig = await userSetup.PerformUserSetupAsync();
+            // Show GUI setup wizard for new users
+            using (var setupWizard = new UserSetupWizard(networkInfo))
+            {
+                var result = setupWizard.ShowDialog();
+                if (result != DialogResult.OK)
+                {
+                    // User cancelled setup
+                    MessageBox.Show(
+                        "Setup was cancelled. Network Security Monitor requires proper configuration.\n\n" +
+                        "The application will now exit.",
+                        "Setup Required",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information
+                    );
+                    return;
+                }
 
-            // Store config for services to use
-            UserConfiguration.LocalIP = userConfig.LocalIP;
-            UserConfiguration.PublicIP = userConfig.PublicIP;
+                var userConfig = setupWizard.Result;
+
+                // Handle firewall configuration
+                userConfig.FirewallConfigured = await userSetup.ConfigureFirewallAsync(userConfig);
+
+                // Validate and save configuration
+                if (userSetup.ValidateConfiguration(userConfig))
+                {
+                    userConfig.IsConfigured = true;
+                    userSetup.SaveConfig(userConfig);
+
+                    // Store config for services to use
+                    UserConfiguration.LocalIP = userConfig.LocalIP;
+                    UserConfiguration.PublicIP = userConfig.PublicIP;
+                }
+                else
+                {
+                    MessageBox.Show(
+                        "Configuration validation failed. Please restart the application and try again.",
+                        "Configuration Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                    return;
+                }
+            }
         }
         else
         {

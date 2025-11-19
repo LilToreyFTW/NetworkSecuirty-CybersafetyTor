@@ -7,19 +7,20 @@ using System.Diagnostics;
 
 namespace NetworkSecurityMonitor.Services;
 
+// ADDED: Configuration class for user settings
+public class UserConfig
+{
+    public string LocalIP { get; set; } = "";
+    public string PublicIP { get; set; } = "";
+    public bool FirewallConfigured { get; set; } = false;
+    public bool IsConfigured { get; set; } = false;
+    public DateTime LastConfigured { get; set; }
+}
+
 // ADDED: Service to guide new users through IP configuration setup
 public class UserSetupService
 {
     private const string CONFIG_FILE = "UserConfig.json";
-
-    public class UserConfig
-    {
-        public string LocalIP { get; set; } = "";
-        public string PublicIP { get; set; } = "";
-        public bool FirewallConfigured { get; set; } = false;
-        public bool IsConfigured { get; set; } = false;
-        public DateTime LastConfigured { get; set; }
-    }
 
     private readonly NetworkInfoService _networkInfo;
 
@@ -65,7 +66,7 @@ public class UserSetupService
     }
 
     // ADDED: Save configuration
-    private void SaveConfig(UserConfig config)
+    public void SaveConfig(UserConfig config)
     {
         try
         {
@@ -288,7 +289,7 @@ public class UserSetupService
     }
 
     // ADDED: Validate complete configuration
-    private bool ValidateConfiguration(UserConfig config)
+    public bool ValidateConfiguration(UserConfig config)
     {
         if (string.IsNullOrEmpty(config.LocalIP) || string.IsNullOrEmpty(config.PublicIP))
             return false;
@@ -300,7 +301,7 @@ public class UserSetupService
     }
 
     // ADDED: Configure Windows Firewall (REQUIRED for program to work)
-    private async Task<bool> ConfigureFirewallAsync(UserConfig config)
+    public async Task<bool> ConfigureFirewallAsync(UserConfig config)
     {
         while (true)
         {
