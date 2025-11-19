@@ -10,6 +10,43 @@ static class Program
     [STAThread]
     static async Task Main()
     {
+        Application.EnableVisualStyles();
+        Application.SetCompatibleTextRenderingDefault(false);
+
+        // STEP 1: EULA ACCEPTANCE - REQUIRED BEFORE ANYTHING ELSE
+        using (var eulaForm = new EULAAcceptanceForm())
+        {
+            var result = eulaForm.ShowDialog();
+
+            if (result != DialogResult.OK || !eulaForm.Accepted)
+            {
+                // User denied EULA or closed the form
+                MessageBox.Show(
+                    "Network Security Monitor requires EULA acceptance to continue.\n\n" +
+                    "The application will now exit.",
+                    "EULA Required",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
+                return;
+            }
+
+            if (eulaForm.RequestInfo)
+            {
+                // User requested more information, show contact details again
+                MessageBox.Show(
+                    "Contact Information:\n\n" +
+                    "Developer: LilToreyFTW\n" +
+                    "Repository: https://github.com/LilToreyFTW/NetworkSecuirty-CybersafetyTor.git\n\n" +
+                    "Please review the EULA in the EULA folder.",
+                    "Contact Information",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
+            }
+        }
+
+        // STEP 2: USER SETUP - IP CONFIGURATION
         // Initialize basic services for setup
         var networkInfo = new NetworkInfoService();
         var userSetup = new UserSetupService(networkInfo);
@@ -32,9 +69,7 @@ static class Program
             UserConfiguration.PublicIP = config.PublicIP;
         }
 
-        Application.EnableVisualStyles();
-        Application.SetCompatibleTextRenderingDefault(false);
-
+        // STEP 3: MAIN APPLICATION - SECURITY SERVICES
         // Initialize enterprise-grade security services
         var networkMonitor = new NetworkMonitorService();
         var aiAnalysis = new AIAnalysisService();
