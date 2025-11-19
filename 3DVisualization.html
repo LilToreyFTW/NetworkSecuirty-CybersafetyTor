@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Security Monitor - 3D Visualization</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: linear-gradient(135deg, rgba(0, 20, 40, 0.3) 0%, rgba(20, 0, 20, 0.3) 100%);
+            z-index: 1;
+        }
+        #title {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            color: #00ffff;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff;
+            z-index: 2;
+            pointer-events: none;
+        }
+        #subtitle {
+            position: absolute;
+            top: 70px;
+            left: 30px;
+            color: #ffffff;
+            font-size: 14px;
+            opacity: 0.8;
+            z-index: 2;
+            pointer-events: none;
+        }
+        #stats {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            color: #ffffff;
+            font-size: 12px;
+            text-align: right;
+            z-index: 2;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="overlay"></div>
+    <div id="title">NETWORK SECURITY MONITOR</div>
+    <div id="subtitle">Advanced Threat Detection System</div>
+    <div id="stats">
+        <div>Status: ACTIVE</div>
+        <div>Threats: SCANNING</div>
+        <div>Connections: MONITORING</div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'https://esm.run/three';
+        import { OrbitControls } from 'https://esm.run/three/examples/jsm/controls/OrbitControls.js';
+        import { EffectComposer } from 'https://esm.run/three/examples/jsm/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'https://esm.run/three/examples/jsm/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'https://esm.run/three/examples/jsm/postprocessing/UnrealBloomPass.js';
+
+        // --- Scene Setup ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000011);
+
+        // Add some subtle fog for depth
+        scene.fog = new THREE.FogExp2(0x000011, 0.015);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 25, 45);
+
+        const renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            powerPreference: "high-performance",
+            alpha: true
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setClearColor(0x000011, 0);
+        document.body.appendChild(renderer.domElement);
+
+        // --- Controls (Subtle auto-rotation, no user interaction) ---
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.03;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.3;
+        controls.enableZoom = false;
+        controls.enablePan = false;
+        controls.enableRotate = false; // Disable manual rotation for clean look
+
+        // --- Generative Geometry (Security-themed Phyllotaxis) ---
+        const count = 2500; // Number of security nodes
+        const geometry = new THREE.OctahedronGeometry(0.4, 0);
+
+        // Cyberpunk-style material
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x00ffff,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.8
+        });
+
+        // Using InstancedMesh for performance
+        const mesh = new THREE.InstancedMesh(geometry, material, count);
+        mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        scene.add(mesh);
+
+        // Pre-allocate helper objects
+        const dummy = new THREE.Object3D();
+        const color = new THREE.Color();
+        const position = new THREE.Vector3();
+
+        // --- Post-Processing (Enhanced Cyberpunk Bloom) ---
+        const renderScene = new RenderPass(scene, camera);
+
+        // Enhanced bloom for cyberpunk effect
+        const bloomPass = new UnrealBloomPass(
+            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            1.5,  // Strength
+            0.7,  // Radius
+            0.01  // Threshold
+        );
+
+        const composer = new EffectComposer(renderer);
+        composer.addPass(renderScene);
+        composer.addPass(bloomPass);
+
+        // --- Additional Cyberpunk Elements ---
+        // Add some floating particles
+        const particleGeometry = new THREE.SphereGeometry(0.02, 4, 4);
+        const particleMaterial = new THREE.MeshBasicMaterial({
+            color: 0xff00ff,
+            transparent: true,
+            opacity: 0.6
+        });
+
+        const particles = new THREE.InstancedMesh(particleGeometry, particleMaterial, 200);
+        particles.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        scene.add(particles);
+
+        // --- Animation Loop ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = clock.getElapsedTime();
+            controls.update();
+
+            // Enhanced Phyllotaxis Parameters
+            const angleBase = 137.5 * (Math.PI / 180);
+            const divergence = angleBase + Math.sin(time * 0.15) * 0.003;
+
+            // Breathing expansion with security pulse
+            const spread = 0.7 + Math.sin(time * 0.4) * 0.08 + Math.sin(time * 2.0) * 0.02;
+
+            // Iterate through security nodes
+            for (let i = 0; i < count; i++) {
+                // Calculate phyllotaxis coordinates
+                const r = spread * Math.sqrt(i);
+                const theta = i * divergence;
+
+                const x = r * Math.cos(theta);
+                const y = Math.sin(r * 0.25 - time * 0.6) * 3.0 - (r * r * 0.008);
+                const z = r * Math.sin(theta);
+
+                dummy.position.set(x, y, z);
+
+                // Security nodes "scan" towards center
+                dummy.lookAt(0, 0, 0);
+
+                // Scale pulsing with threat simulation
+                const scale = 0.8 - (i / count) * 0.4 + Math.sin(time * 1.5 + i * 0.05) * 0.15;
+                dummy.scale.setScalar(Math.max(0.05, scale));
+
+                dummy.updateMatrix();
+                mesh.setMatrixAt(i, dummy.matrix);
+
+                // Dynamic cyberpunk colors
+                const hue = (i * 0.0003 + time * 0.03) % 1;
+                const saturation = 0.9 + Math.sin(time * 0.5 + i * 0.01) * 0.1;
+                const lightness = 0.6 + Math.sin(time + i * 0.02) * 0.2;
+                color.setHSL(hue, saturation, lightness);
+                mesh.setColorAt(i, color);
+            }
+
+            mesh.instanceMatrix.needsUpdate = true;
+            if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+
+            // Animate particles
+            for (let i = 0; i < 200; i++) {
+                const r = 15 + Math.sin(time * 0.2 + i) * 5;
+                const theta = time * 0.1 + i * 0.1;
+                const x = r * Math.cos(theta);
+                const z = r * Math.sin(theta);
+                const y = Math.sin(time + i * 0.1) * 2;
+
+                dummy.position.set(x, y, z);
+                dummy.scale.setScalar(0.5 + Math.sin(time * 2 + i * 0.1) * 0.3);
+                dummy.updateMatrix();
+                particles.setMatrixAt(i, dummy.matrix);
+
+                // Particle colors
+                color.setHSL((time * 0.1 + i * 0.01) % 1, 1.0, 0.7);
+                particles.setColorAt(i, color);
+            }
+
+            particles.instanceMatrix.needsUpdate = true;
+            if (particles.instanceColor) particles.instanceColor.needsUpdate = true;
+
+            // Slow rotation of the entire security network
+            mesh.rotation.y = time * 0.02;
+            mesh.rotation.z = Math.sin(time * 0.15) * 0.05;
+
+            // Subtle camera movement
+            camera.position.x = Math.sin(time * 0.1) * 2;
+            camera.position.z = 45 + Math.cos(time * 0.1) * 3;
+
+            composer.render();
+        }
+
+        // --- Resize Handler ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start the cyberpunk security visualization
+        animate();
+
+        // Expose update function for external control
+        window.updateSecurityStats = function(status, threats, connections) {
+            document.getElementById('stats').innerHTML = `
+                <div>Status: ${status}</div>
+                <div>Threats: ${threats}</div>
+                <div>Connections: ${connections}</div>
+            `;
+        };
+    </script>
+</body>
+</html>

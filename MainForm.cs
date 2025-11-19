@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.Web.WebView2.Core;
+using Microsoft.Web.WebView2.WinForms;
 using NetworkSecurityMonitor.Models;
 using NetworkSecurityMonitor.Services;
 
@@ -16,7 +19,9 @@ public partial class MainForm : Form
     private readonly ActiveDefenseService _activeDefense;
     private readonly NetworkInfoService _networkInfo;
 
-    // UI Controls
+    // Modern UI Controls
+    private WebView2 webView3D;
+    private Panel glassPanel;
     private Label lblTitle;
     private Label lblStatus;
     private Label lblThreatsCount;
@@ -24,8 +29,8 @@ public partial class MainForm : Form
     private Label lblConnectionsCount;
     private Label lblLocalIP;
     private Label lblPublicIP;
-    private ListView lvThreats;
-    private TextBox txtLog;
+    private FlowLayoutPanel threatsPanel;
+    private RichTextBox txtLog;
     private System.Windows.Forms.Timer updateTimer;
 
     // System Tray Components
@@ -46,130 +51,165 @@ public partial class MainForm : Form
         StartMonitoring();
     }
 
-    private void InitializeComponent()
+    private async void InitializeComponent()
     {
-        this.Text = "🛡️ Network Security Monitor - AI-Powered Threat Detection";
-        this.Size = new Size(1200, 800);
+        this.Text = "🛡️ Network Security Monitor - Cyberpunk Edition";
+        this.Size = new Size(1400, 900);
         this.StartPosition = FormStartPosition.CenterScreen;
-        this.BackColor = Color.FromArgb(10, 14, 39);
+        this.BackColor = Color.Black;
         this.ShowInTaskbar = true;
         this.WindowState = FormWindowState.Normal;
+        this.FormBorderStyle = FormBorderStyle.None; // Borderless for modern look
+        this.DoubleBuffered = true;
 
-        // Title
+        // Initialize 3D WebView Background
+        await InitializeWebView3D();
+
+        // Glass morphism overlay panel
+        glassPanel = new Panel
+        {
+            Location = new Point(0, 0),
+            Size = new Size(1400, 900),
+            BackColor = Color.FromArgb(180, 0, 0, 0), // Semi-transparent black
+            BorderStyle = BorderStyle.None
+        };
+
+        // Cyberpunk title
         lblTitle = new Label
         {
-            Text = "🛡️ Network Security Monitor",
-            Font = new Font("Segoe UI", 18, FontStyle.Bold),
+            Text = "NETWORK SECURITY MONITOR",
+            Font = new Font("Segoe UI", 28, FontStyle.Bold),
             ForeColor = Color.Cyan,
-            Location = new Point(20, 20),
-            Size = new Size(400, 40),
-            BackColor = Color.Transparent
+            Location = new Point(50, 30),
+            Size = new Size(600, 50),
+            BackColor = Color.Transparent,
+            TextAlign = ContentAlignment.MiddleLeft
         };
+        lblTitle.Paint += (s, e) => DrawGlowingText(e.Graphics, lblTitle.Text, lblTitle.Font, lblTitle.ForeColor, lblTitle.ClientRectangle, 3);
 
         lblStatus = new Label
         {
-            Text = "🔴 Initializing...",
-            Font = new Font("Segoe UI", 10),
+            Text = "🔴 INITIALIZING CYBER DEFENSE...",
+            Font = new Font("Segoe UI", 12, FontStyle.Bold),
             ForeColor = Color.Orange,
-            Location = new Point(20, 60),
-            Size = new Size(300, 20),
+            Location = new Point(50, 85),
+            Size = new Size(400, 25),
             BackColor = Color.Transparent
         };
 
-        // Statistics Panel
-        var statsPanel = CreateStatsPanel();
+        // Statistics Panels (Modern Glass Cards)
+        var statsPanel = CreateModernStatsPanel();
 
-        // Threats List
-        lvThreats = new ListView
-        {
-            Location = new Point(20, 140),
-            Size = new Size(560, 300),
-            View = View.Details,
-            BackColor = Color.FromArgb(20, 24, 49),
-            ForeColor = Color.White,
-            Font = new Font("Consolas", 9),
-            GridLines = true,
-            FullRowSelect = true
-        };
+        // Recent Threats Panel
+        var threatsPanel = CreateModernThreatsPanel();
 
-        lvThreats.Columns.Add("IP Address", 120);
-        lvThreats.Columns.Add("Country", 80);
-        lvThreats.Columns.Add("Attack Type", 150);
-        lvThreats.Columns.Add("Category", 100);
-        lvThreats.Columns.Add("Severity", 70);
-        lvThreats.Columns.Add("Risk", 60);
+        // Network Info Panel
+        var networkPanel = CreateModernNetworkPanel();
 
-        // Log TextBox
-        txtLog = new TextBox
-        {
-            Location = new Point(20, 460),
-            Size = new Size(560, 280),
-            Multiline = true,
-            ScrollBars = ScrollBars.Vertical,
-            BackColor = Color.FromArgb(20, 24, 49),
-            ForeColor = Color.LightGray,
-            Font = new Font("Consolas", 8),
-            ReadOnly = true
-        };
+        // Activity Log Panel
+        var logPanel = CreateModernLogPanel();
 
-        // Info Panel
-        var infoPanel = CreateInfoPanel();
-
-        // Add controls
-        this.Controls.AddRange(new Control[] {
-            lblTitle, lblStatus, statsPanel, lvThreats, txtLog, infoPanel
+        // Add controls to glass panel
+        glassPanel.Controls.AddRange(new Control[] {
+            lblTitle, lblStatus, statsPanel, threatsPanel, networkPanel, logPanel
         });
+
+        // Add glass panel and WebView to form
+        this.Controls.AddRange(new Control[] { glassPanel, webView3D });
 
         // Initialize System Tray
         InitializeTrayIcon();
 
         // Update timer
-        updateTimer = new System.Windows.Forms.Timer { Interval = 1000 }; // Update every second
+        updateTimer = new System.Windows.Forms.Timer { Interval = 1000 };
         updateTimer.Tick += UpdateTimer_Tick;
         updateTimer.Start();
 
         // Handle form events
         this.Resize += MainForm_Resize;
         this.FormClosing += MainForm_FormClosing;
+        this.KeyDown += MainForm_KeyDown; // Allow ESC to minimize to tray
     }
 
-    private Panel CreateStatsPanel()
+    private async Task InitializeWebView3D()
     {
-        var panel = new Panel
+        webView3D = new WebView2
         {
-            Location = new Point(600, 20),
-            Size = new Size(560, 100),
-            BackColor = Color.FromArgb(20, 24, 49),
-            BorderStyle = BorderStyle.FixedSingle
+            Location = new Point(0, 0),
+            Size = new Size(1400, 900),
+            Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
         };
+
+        try
+        {
+            // Initialize WebView2
+            var env = await CoreWebView2Environment.CreateAsync(null, null, null);
+            await webView3D.EnsureCoreWebView2Async(env);
+
+            // Load the 3D visualization
+            var htmlPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "3DVisualization.html");
+            if (System.IO.File.Exists(htmlPath))
+            {
+                webView3D.CoreWebView2.Navigate(htmlPath);
+            }
+            else
+            {
+                // Fallback: create HTML content directly
+                var htmlContent = @"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body { margin: 0; background: linear-gradient(45deg, #000011, #001122); }
+                        #cyber { color: cyan; font-family: monospace; font-size: 20px; text-align: center; padding-top: 200px; }
+                    </style>
+                </head>
+                <body>
+                    <div id='cyber'>CYBER DEFENSE ACTIVE</div>
+                </body>
+                </html>";
+                webView3D.NavigateToString(htmlContent);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Fallback if WebView2 fails
+            webView3D.Visible = false;
+            this.BackColor = Color.FromArgb(0, 17, 34);
+        }
+    }
+
+    private Panel CreateModernStatsPanel()
+    {
+        var panel = CreateGlassPanel(50, 120, 400, 120, "SECURITY METRICS");
 
         lblThreatsCount = new Label
         {
-            Text = "Active Threats: 0",
-            Font = new Font("Segoe UI", 12, FontStyle.Bold),
+            Text = "THREATS DETECTED: 0",
+            Font = new Font("Segoe UI", 14, FontStyle.Bold),
             ForeColor = Color.Red,
-            Location = new Point(20, 10),
-            Size = new Size(250, 25),
+            Location = new Point(20, 20),
+            Size = new Size(360, 25),
             BackColor = Color.Transparent
         };
 
         lblBlockedCount = new Label
         {
-            Text = "IPs Blocked: 0",
+            Text = "ATTACKERS BLOCKED: 0",
             Font = new Font("Segoe UI", 12, FontStyle.Bold),
-            ForeColor = Color.Yellow,
-            Location = new Point(20, 35),
-            Size = new Size(250, 25),
+            ForeColor = Color.Orange,
+            Location = new Point(20, 50),
+            Size = new Size(360, 25),
             BackColor = Color.Transparent
         };
 
         lblConnectionsCount = new Label
         {
-            Text = "Active Connections: 0",
-            Font = new Font("Segoe UI", 10),
+            Text = "ACTIVE CONNECTIONS: 0",
+            Font = new Font("Segoe UI", 11),
             ForeColor = Color.Cyan,
-            Location = new Point(20, 60),
-            Size = new Size(250, 20),
+            Location = new Point(20, 80),
+            Size = new Size(360, 20),
             BackColor = Color.Transparent
         };
 
@@ -177,78 +217,80 @@ public partial class MainForm : Form
         return panel;
     }
 
-    private Panel CreateInfoPanel()
+    private Panel CreateModernThreatsPanel()
     {
-        var panel = new Panel
+        var panel = CreateGlassPanel(470, 120, 450, 250, "RECENT THREATS");
+
+        threatsPanel = new FlowLayoutPanel
         {
-            Location = new Point(600, 140),
-            Size = new Size(560, 600),
-            BackColor = Color.FromArgb(20, 24, 49),
-            BorderStyle = BorderStyle.FixedSingle
+            Location = new Point(10, 30),
+            Size = new Size(430, 210),
+            BackColor = Color.Transparent,
+            FlowDirection = FlowDirection.TopDown,
+            WrapContents = false,
+            AutoScroll = true
         };
 
-        var lblInfo = new Label
-        {
-            Text = "🔍 System Information:",
-            Font = new Font("Segoe UI", 11, FontStyle.Bold),
-            ForeColor = Color.White,
-            Location = new Point(20, 20),
-            Size = new Size(200, 25),
-            BackColor = Color.Transparent
-        };
+        panel.Controls.Add(threatsPanel);
+        return panel;
+    }
+
+    private Panel CreateModernNetworkPanel()
+    {
+        var panel = CreateGlassPanel(50, 260, 400, 200, "NETWORK STATUS");
 
         var lblLocalIP = new Label
         {
-            Text = "Configured Local IP: Loading...",
-            Font = new Font("Segoe UI", 9),
-            ForeColor = Color.LightGray,
-            Location = new Point(20, 50),
-            Size = new Size(520, 40),
+            Text = "LOCAL IP: SCANNING...",
+            Font = new Font("Segoe UI", 10, FontStyle.Bold),
+            ForeColor = Color.LightGreen,
+            Location = new Point(20, 30),
+            Size = new Size(360, 25),
             BackColor = Color.Transparent
         };
 
         var lblPublicIP = new Label
         {
-            Text = "Configured Public IP: Loading...",
-            Font = new Font("Segoe UI", 9),
-            ForeColor = Color.LightGray,
-            Location = new Point(20, 90),
-            Size = new Size(250, 20),
+            Text = "PUBLIC IP: SCANNING...",
+            Font = new Font("Segoe UI", 10, FontStyle.Bold),
+            ForeColor = Color.Cyan,
+            Location = new Point(20, 65),
+            Size = new Size(360, 25),
             BackColor = Color.Transparent
         };
 
-        var lblMonitoring = new Label
+        var lblDefenseStatus = new Label
         {
-            Text = "🔴 Monitoring: EXTERNAL IPs only\n   (local network traffic filtered)",
-            Font = new Font("Segoe UI", 9),
-            ForeColor = Color.Orange,
-            Location = new Point(20, 120),
-            Size = new Size(520, 40),
-            BackColor = Color.Transparent
-        };
-
-        var lblActiveDefense = new Label
-        {
-            Text = "🛡️ Active Defense:\n   Attackers automatically blocked\n   Redirected to 999.222.215.9",
+            Text = "🛡️ ACTIVE DEFENSE: ENGAGED",
             Font = new Font("Segoe UI", 9),
             ForeColor = Color.Green,
-            Location = new Point(20, 170),
-            Size = new Size(520, 60),
+            Location = new Point(20, 105),
+            Size = new Size(360, 20),
             BackColor = Color.Transparent
         };
 
-        var lblHoneypot = new Label
+        var lblMonitoringMode = new Label
         {
-            Text = "🍯 Honeypot: Active on common ports\n   Trapping attackers automatically",
+            Text = "🔍 MONITORING: EXTERNAL IPs ONLY",
+            Font = new Font("Segoe UI", 9),
+            ForeColor = Color.Orange,
+            Location = new Point(20, 135),
+            Size = new Size(360, 20),
+            BackColor = Color.Transparent
+        };
+
+        var lblHoneypotStatus = new Label
+        {
+            Text = "🍯 HONEYPOT: ACTIVE",
             Font = new Font("Segoe UI", 9),
             ForeColor = Color.Magenta,
-            Location = new Point(20, 240),
-            Size = new Size(520, 40),
+            Location = new Point(20, 165),
+            Size = new Size(360, 20),
             BackColor = Color.Transparent
         };
 
         panel.Controls.AddRange(new Control[] {
-            lblInfo, lblLocalIP, lblPublicIP, lblMonitoring, lblActiveDefense, lblHoneypot
+            lblLocalIP, lblPublicIP, lblDefenseStatus, lblMonitoringMode, lblHoneypotStatus
         });
 
         // Store references for updates
@@ -256,6 +298,84 @@ public partial class MainForm : Form
         this.lblPublicIP = lblPublicIP;
 
         return panel;
+    }
+
+    private Panel CreateModernLogPanel()
+    {
+        var panel = CreateGlassPanel(470, 390, 450, 300, "ACTIVITY LOG");
+
+        txtLog = new RichTextBox
+        {
+            Location = new Point(10, 30),
+            Size = new Size(430, 260),
+            BackColor = Color.FromArgb(10, 10, 20),
+            ForeColor = Color.LightGray,
+            Font = new Font("Consolas", 8),
+            ReadOnly = true,
+            BorderStyle = BorderStyle.None,
+            ScrollBars = RichTextBoxScrollBars.Vertical
+        };
+
+        panel.Controls.Add(txtLog);
+        return panel;
+    }
+
+    private Panel CreateGlassPanel(int x, int y, int width, int height, string title)
+    {
+        var panel = new Panel
+        {
+            Location = new Point(x, y),
+            Size = new Size(width, height),
+            BackColor = Color.FromArgb(40, 0, 20, 40), // Glass effect
+            BorderStyle = BorderStyle.None
+        };
+
+        // Add glass morphism effect
+        panel.Paint += (s, e) =>
+        {
+            var rect = new Rectangle(0, 0, width - 1, height - 1);
+            using (var brush = new LinearGradientBrush(rect, Color.FromArgb(60, 0, 255, 255), Color.FromArgb(30, 255, 0, 255), 45f))
+            {
+                e.Graphics.FillRectangle(brush, rect);
+            }
+
+            // Draw border with glow
+            using (var pen = new Pen(Color.Cyan, 1))
+            {
+                e.Graphics.DrawRectangle(pen, rect);
+            }
+
+            // Draw title
+            if (!string.IsNullOrEmpty(title))
+            {
+                using (var font = new Font("Segoe UI", 10, FontStyle.Bold))
+                using (var brush = new SolidBrush(Color.Cyan))
+                {
+                    e.Graphics.DrawString(title, font, brush, 15, 8);
+                }
+            }
+        };
+
+        return panel;
+    }
+
+    private void DrawGlowingText(Graphics g, string text, Font font, Color color, Rectangle rect, int glowSize)
+    {
+        // Draw glow effect
+        for (int i = glowSize; i > 0; i--)
+        {
+            using (var brush = new SolidBrush(Color.FromArgb(i * 20, color)))
+            {
+                var glowRect = new Rectangle(rect.X - i, rect.Y - i, rect.Width + i * 2, rect.Height + i * 2);
+                g.DrawString(text, font, brush, glowRect, new StringFormat { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Center });
+            }
+        }
+
+        // Draw main text
+        using (var brush = new SolidBrush(color))
+        {
+            g.DrawString(text, font, brush, rect, new StringFormat { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Center });
+        }
     }
 
     /// <summary>
@@ -502,45 +622,86 @@ public partial class MainForm : Form
             var connections = _networkMonitor.GetActiveConnections();
 
             // Update statistics
-            lblThreatsCount.Text = $"Active Threats: {threats.Count}";
-            lblBlockedCount.Text = $"IPs Blocked: {blockedIPs.Count}";
-            lblConnectionsCount.Text = $"Active Connections: {connections.Count}";
+            lblThreatsCount.Text = $"THREATS DETECTED: {threats.Count}";
+            lblBlockedCount.Text = $"ATTACKERS BLOCKED: {blockedIPs.Count}";
+            lblConnectionsCount.Text = $"ACTIVE CONNECTIONS: {connections.Count}";
 
-            // Update threats list
-            lvThreats.Items.Clear();
-            foreach (var threat in threats.OrderByDescending(t => t.LastDetected).Take(50))
-            {
-                var item = new ListViewItem(threat.IPAddress);
-                item.SubItems.Add(threat.Country);
-                item.SubItems.Add(threat.AttackType.Replace("🚨 EXTERNAL ATTACK: ", "").Replace("?? EXTERNAL ATTACK: ", ""));
-                item.SubItems.Add(threat.ThreatCategory);
-                item.SubItems.Add(threat.Severity.ToString());
-                item.SubItems.Add($"{threat.RiskScore}%");
+            // Update 3D visualization stats
+            Update3DVisualization(threats.Count > 0 ? "THREAT DETECTED" : "ACTIVE",
+                                threats.Count > 0 ? "SCANNING..." : "SECURE",
+                                connections.Count.ToString());
 
-                // Color based on severity and malicious status
-                if (threat.IsKnownMalicious)
-                {
-                    item.ForeColor = Color.Red;
-                    item.Font = new Font(lvThreats.Font, FontStyle.Bold);
-                }
-                else
-                {
-                    item.ForeColor = threat.Severity switch
-                    {
-                        ThreatSeverity.Critical => Color.Red,
-                        ThreatSeverity.High => Color.Orange,
-                        ThreatSeverity.Medium => Color.Yellow,
-                        _ => Color.LightGray
-                    };
-                }
-
-                lvThreats.Items.Add(item);
-            }
+            // Update threats panel
+            UpdateThreatsPanel(threats.OrderByDescending(t => t.LastDetected).Take(10));
         }
         catch (Exception ex)
         {
             LogMessage($"[ERROR] Update error: {ex.Message}");
         }
+    }
+
+    private void Update3DVisualization(string status, string threats, string connections)
+    {
+        try
+        {
+            if (webView3D?.CoreWebView2 != null)
+            {
+                var script = $"window.updateSecurityStats('{status}', '{threats}', '{connections}')";
+                webView3D.CoreWebView2.ExecuteScriptAsync(script);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Ignore WebView errors
+        }
+    }
+
+    private void UpdateThreatsPanel(IEnumerable<SuspiciousActivity> threats)
+    {
+        if (threatsPanel == null) return;
+
+        threatsPanel.Controls.Clear();
+
+        foreach (var threat in threats)
+        {
+            var threatLabel = new Label
+            {
+                Text = $"{threat.IPAddress} - {threat.ThreatCategory}",
+                Font = new Font("Segoe UI", 9),
+                ForeColor = GetThreatColor(threat),
+                Size = new Size(400, 20),
+                BackColor = Color.Transparent,
+                Margin = new Padding(0, 2, 0, 2)
+            };
+
+            threatsPanel.Controls.Add(threatLabel);
+        }
+
+        if (!threats.Any())
+        {
+            var noThreatsLabel = new Label
+            {
+                Text = "🛡️ NO ACTIVE THREATS DETECTED",
+                Font = new Font("Segoe UI", 10),
+                ForeColor = Color.Green,
+                Size = new Size(400, 25),
+                BackColor = Color.Transparent,
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+            threatsPanel.Controls.Add(noThreatsLabel);
+        }
+    }
+
+    private Color GetThreatColor(SuspiciousActivity threat)
+    {
+        if (threat.IsKnownMalicious) return Color.Red;
+        return threat.Severity switch
+        {
+            ThreatSeverity.Critical => Color.Red,
+            ThreatSeverity.High => Color.Orange,
+            ThreatSeverity.Medium => Color.Yellow,
+            _ => Color.LightGray
+        };
     }
 
     private void OnThreatDetected(object? sender, ThreatDetectedEventArgs e)
@@ -556,6 +717,9 @@ public partial class MainForm : Form
             LogMessage($"   Severity: {activity.Severity} | Connections: {activity.ConnectionCount} | Risk: {activity.RiskScore}%");
             LogMessage($"   Forensic evidence collected and incident logged");
             LogMessage("");
+
+            // Update 3D visualization for immediate threat response
+            Update3DVisualization("THREAT BLOCKED", "DEFENDING", activity.ConnectionCount.ToString());
         });
     }
 
@@ -573,18 +737,51 @@ public partial class MainForm : Form
 
     private void AddLogMessage(string message)
     {
-        var timestamp = DateTime.Now.ToString("HH:mm:ss");
-        txtLog.AppendText($"[{timestamp}] {message}\r\n");
+        if (txtLog == null) return;
 
-        // Keep only last 1000 lines
-        if (txtLog.Lines.Length > 1000)
+        var timestamp = DateTime.Now.ToString("HH:mm:ss");
+        var logEntry = $"[{timestamp}] {message}\r\n";
+
+        // Add colored text based on message content
+        var startIndex = txtLog.TextLength;
+        txtLog.AppendText(logEntry);
+
+        // Color the timestamp
+        txtLog.Select(startIndex, 11); // Select timestamp including brackets
+        txtLog.SelectionColor = Color.Cyan;
+
+        // Color based on message content
+        var messageStart = startIndex + 11;
+        var messageLength = logEntry.Length - 11;
+
+        txtLog.Select(messageStart, messageLength);
+        if (message.Contains("[ERROR]"))
+            txtLog.SelectionColor = Color.Red;
+        else if (message.Contains("[🛡️ BLOCKED]"))
+            txtLog.SelectionColor = Color.Orange;
+        else if (message.Contains("[INFO]"))
+            txtLog.SelectionColor = Color.Green;
+        else
+            txtLog.SelectionColor = Color.LightGray;
+
+        // Keep only last 500 lines for performance
+        if (txtLog.Lines.Length > 500)
         {
-            var lines = txtLog.Lines.Skip(100).ToArray();
+            var lines = txtLog.Lines.Skip(50).ToArray();
             txtLog.Lines = lines;
         }
 
-        txtLog.SelectionStart = txtLog.Text.Length;
+        txtLog.SelectionStart = txtLog.TextLength;
         txtLog.ScrollToCaret();
+    }
+
+    private void MainForm_KeyDown(object? sender, KeyEventArgs e)
+    {
+        // Allow ESC key to minimize to tray
+        if (e.KeyCode == Keys.Escape && !isMinimizedToTray)
+        {
+            this.WindowState = FormWindowState.Minimized;
+        }
     }
 
     protected override void OnFormClosing(FormClosingEventArgs e)

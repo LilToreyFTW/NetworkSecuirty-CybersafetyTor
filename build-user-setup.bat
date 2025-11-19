@@ -1,15 +1,13 @@
 @echo off
-REM ADDED: Batch build script for Network Security Monitor
-echo === Building Network Security Monitor ===
+REM ADDED: Batch build script for Network Security Monitor (User Setup Version)
+echo === Building Network Security Monitor (User Setup Version) ===
 echo.
 
 REM ADDED: Build C# backend
 echo [1/3] Building C# backend...
-cd NetworkSecurityMonitor
 dotnet restore
 if %errorlevel% neq 0 (
     echo Failed to restore packages!
-    cd ..
     pause
     exit /b 1
 )
@@ -17,7 +15,6 @@ if %errorlevel% neq 0 (
 dotnet build -c Release
 if %errorlevel% neq 0 (
     echo Build failed!
-    cd ..
     pause
     exit /b 1
 )
@@ -25,20 +22,17 @@ if %errorlevel% neq 0 (
 REM ADDED: Publish as single executable
 echo.
 echo [2/3] Publishing executable...
-dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o ../dist
+dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o ../dist-user-setup
 if %errorlevel% neq 0 (
     echo Publish failed!
-    cd ..
     pause
     exit /b 1
 )
 
-cd ..
-
 REM ADDED: Build TypeScript frontend
 echo.
 echo [3/3] Building TypeScript frontend...
-cd Frontend
+cd ..\Frontend
 if exist "node_modules" (
     echo Node modules already installed, skipping npm install...
 ) else (
@@ -54,26 +48,26 @@ if exist "node_modules" (
 npm run build
 if %errorlevel% neq 0 (
     echo Frontend build failed!
-    cd ..
+    cd ..\NetworkSecurityMonitor-UserSetup
     pause
     exit /b 1
 )
 
-cd ..
+cd ..\NetworkSecurityMonitor-UserSetup
 
-REM ADDED: Copy frontend build to dist
+REM ADDED: Copy frontend build to dist-user-setup
 echo.
-echo Copying frontend to dist...
-if exist "dist\Frontend" (
-    rmdir /s /q "dist\Frontend"
+echo Copying frontend to dist-user-setup...
+if exist "..\dist-user-setup\Frontend" (
+    rmdir /s /q "..\dist-user-setup\Frontend"
 )
-xcopy /e /i /y "Frontend\dist" "dist\Frontend"
+xcopy /e /i /y "..\Frontend\dist" "..\dist-user-setup\Frontend"
 
 echo.
 echo === Build Complete! ===
-echo Executable location: dist\NetworkSecurityMonitor.exe
-echo Frontend location: dist\Frontend\
+echo Executable location: ..\dist-user-setup\NetworkSecurityMonitor.exe
+echo Frontend location: ..\dist-user-setup\Frontend\
 echo.
-echo To run: .\dist\NetworkSecurityMonitor.exe
+echo To run: ..\dist-user-setup\NetworkSecurityMonitor.exe
 echo.
 pause

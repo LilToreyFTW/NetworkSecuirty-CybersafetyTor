@@ -1,44 +1,28 @@
 @echo off
-REM ADDED: Batch clean script for all builds
-echo === Cleaning All Builds ===
+REM ADDED: Batch clean script for User Setup builds
+echo === Cleaning User Setup Builds ===
 echo.
 
-REM ADDED: Clean main dist
-if exist "dist" (
-    echo Cleaning main dist...
-    rmdir /s /q dist
+REM ADDED: Clean user setup dist
+if exist "..\dist-user-setup" (
+    echo Cleaning user setup dist...
+    rmdir /s /q ..\dist-user-setup
 )
 
-REM ADDED: Clean router dist
-if exist "dist-router" (
-    echo Cleaning router dist...
-    rmdir /s /q dist-router
+REM ADDED: Clean bin/obj
+if exist "bin" (
+    echo Cleaning bin...
+    rmdir /s /q bin
+)
+if exist "obj" (
+    echo Cleaning obj...
+    rmdir /s /q obj
 )
 
-REM ADDED: Clean NetworkSecurityMonitor bin/obj
-if exist "NetworkSecurityMonitor\bin" (
-    echo Cleaning NetworkSecurityMonitor bin...
-    rmdir /s /q NetworkSecurityMonitor\bin
-)
-if exist "NetworkSecurityMonitor\obj" (
-    echo Cleaning NetworkSecurityMonitor obj...
-    rmdir /s /q NetworkSecurityMonitor\obj
-)
-
-REM ADDED: Clean RouterIntegration bin/obj
-if exist "RouterIntegration\bin" (
-    echo Cleaning RouterIntegration bin...
-    rmdir /s /q RouterIntegration\bin
-)
-if exist "RouterIntegration\obj" (
-    echo Cleaning RouterIntegration obj...
-    rmdir /s /q RouterIntegration\obj
-)
-
-REM ADDED: Clean Frontend node_modules (optional)
-if exist "Frontend\node_modules" (
-    echo Cleaning Frontend node_modules...
-    rmdir /s /q Frontend\node_modules
+REM ADDED: Clean UserConfig.json
+if exist "UserConfig.json" (
+    echo Cleaning user configuration...
+    del UserConfig.json
 )
 
 echo.
