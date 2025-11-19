@@ -1,5 +1,47 @@
-SHORT EULA SUMMARY  
-- Non-exclusive license  
-- Legal authorization required  
-- Monitors network traffic  
-Contact: LilToreyFTW 
+﻿================================================================================
+                        NETWORK SECURITY MONITOR
+                             SHORT EULA SUMMARY
+================================================================================
+
+LICENSE GRANT:
+- Non-exclusive license for one computer only
+- Lawful cybersecurity purposes only
+- No redistribution or commercial use
+- Personal use only
+
+USER RESPONSIBILITIES:
+- Legal authorization required for network monitoring
+- Must comply with all privacy laws and regulations
+- Responsible for proper firewall configuration
+- Must report security vulnerabilities to developer
+- Cannot use software for illegal activities
+
+CRITICAL WARNINGS:
+- Monitors network traffic (may capture sensitive data)
+- Modifies Windows Firewall rules automatically
+- Threat detection is not 100% accurate
+- Use only as part of comprehensive security strategy
+- Requires administrator privileges
+
+LIMITATION OF LIABILITY:
+- Software provided "AS IS" without warranties
+- No guarantee of threat prevention or detection
+- Maximum liability limited to $100
+- No liability for indirect or consequential damages
+
+LEGAL REQUIREMENTS:
+- Must read and accept full EULA before use
+- Agreement governed by United States law
+- Disputes resolved through arbitration
+- User indemnifies developer against misuse claims
+
+CONTACT INFORMATION:
+Developer: LilToreyFTW
+Repository: https://github.com/LilToreyFTW/NetworkSecuirty-CybersafetyTor.git
+
+================================================================================
+
+BY USING THIS SOFTWARE, YOU ACCEPT THE TERMS OF THE FULL EULA.
+DO NOT USE IF YOU DO NOT AGREE TO THESE TERMS.
+
+================================================================================

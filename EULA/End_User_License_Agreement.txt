@@ -1,6 +1,119 @@
-END USER LICENSE AGREEMENT  
-  
-NETWORK SECURITY MONITOR  
-  
-IMPORTANT: Read this agreement carefully.  
-By using this software, you accept all terms. 
+﻿================================================================================
+                        END USER LICENSE AGREEMENT
+================================================================================
+
+NETWORK SECURITY MONITOR - USER SETUP VERSION
+
+Last Updated: November 18, 2025
+
+================================================================================
+
+IMPORTANT NOTICE: PLEASE READ THIS END USER LICENSE AGREEMENT ("AGREEMENT")
+CAREFULLY BEFORE INSTALLING, ACCESSING, OR USING THE NETWORK SECURITY MONITOR
+SOFTWARE ("SOFTWARE"). BY INSTALLING, ACCESSING, OR USING THE SOFTWARE, YOU
+AGREE TO BE BOUND BY THE TERMS AND CONDITIONS OF THIS AGREEMENT.
+
+IF YOU DO NOT AGREE TO THE TERMS OF THIS AGREEMENT, DO NOT INSTALL, ACCESS,
+OR USE THE SOFTWARE AND DELETE ALL COPIES OF THE SOFTWARE FROM YOUR SYSTEMS.
+
+================================================================================
+
+1. DEFINITIONS
+
+"Software" means the Network Security Monitor application, including all
+updates, patches, and related documentation.
+
+"Licensor" means the developer and copyright holder of the Software.
+
+"Licensee" or "You" means the individual or entity that installs, accesses,
+or uses the Software.
+
+================================================================================
+
+2. LICENSE GRANT
+
+Subject to the terms of this Agreement, Licensor grants Licensee a non-exclusive,
+non-transferable license to install and use the Software on a single computer
+for lawful cybersecurity purposes only.
+
+================================================================================
+
+3. USER RESPONSIBILITIES
+
+Licensee acknowledges they are responsible for:
+- Having legal authorization to monitor the network
+- Complying with all applicable laws and privacy regulations
+- Properly configuring firewall settings
+- Maintaining system security and data protection
+- Not using the Software for illegal activities
+
+================================================================================
+
+4. SECURITY AND LIABILITY WARNINGS
+
+CRITICAL WARNINGS:
+- Software monitors network traffic and modifies firewall rules
+- May capture sensitive network data
+- Firewall changes can affect system connectivity
+- Threat detection is not 100% accurate
+- Software provided "AS IS" without security guarantees
+- Use only as part of a comprehensive security strategy
+
+================================================================================
+
+5. LIMITATION OF LIABILITY
+
+LICENSOR IS NOT LIABLE FOR:
+- Failure to detect or prevent security threats
+- Network interruptions or connectivity issues
+- Data loss, breaches, or unauthorized access
+- Indirect, incidental, or consequential damages
+- Any damages exceeding $100 or the amount paid for the software
+
+================================================================================
+
+6. INDEMNIFICATION
+
+Licensee agrees to indemnify Licensor against claims arising from:
+- Misuse of the Software
+- Violation of laws or third-party rights
+- Security incidents caused by improper use
+- Unauthorized access or data breaches
+
+================================================================================
+
+7. TERMINATION
+
+This Agreement terminates if Licensee breaches terms. Licensee may terminate
+by uninstalling the Software and removing all copies from their systems.
+
+================================================================================
+
+8. GOVERNING LAW
+
+This Agreement is governed by United States law. Any disputes will be resolved
+through binding arbitration in accordance with applicable law.
+
+================================================================================
+
+9. ENTIRE AGREEMENT
+
+This Agreement constitutes the entire agreement between the parties and
+supersedes all prior agreements or understandings.
+
+================================================================================
+
+10. CONTACT INFORMATION
+
+For questions about this Agreement or the Software:
+
+Developer: LilToreyFTW
+Repository: https://github.com/LilToreyFTW/NetworkSecuirty-CybersafetyTor.git
+
+================================================================================
+
+BY INSTALLING, ACCESSING, OR USING THE SOFTWARE, YOU ACKNOWLEDGE THAT YOU HAVE
+READ THIS AGREEMENT, UNDERSTAND ITS TERMS, AND AGREE TO BE BOUND BY ALL ITS
+PROVISIONS.
+
+================================================================================
