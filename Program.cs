@@ -73,10 +73,7 @@ static class Program
 
                 var userConfig = setupWizard.Result;
 
-                // Handle firewall configuration
-                userConfig.FirewallConfigured = await userSetup.ConfigureFirewallAsync(userConfig);
-
-                // Validate and save configuration
+                // Firewall configuration is handled by the wizard, validate and save configuration
                 if (userSetup.ValidateConfiguration(userConfig))
                 {
                     userConfig.IsConfigured = true;

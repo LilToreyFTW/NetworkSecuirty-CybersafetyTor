@@ -468,6 +468,97 @@ public partial class UserSetupWizard : Form
 
     private void UpdateCompleteStep()
     {
+        // Handle firewall configuration choice
+        if (rbAutoFirewall.Checked)
+        {
+            _config.FirewallConfigured = true; // Will be handled automatically later
+        }
+        else
+        {
+            // Show manual firewall instructions dialog
+            var manualDialog = new Form
+            {
+                Text = "Manual Firewall Configuration Required",
+                Size = new Size(600, 500),
+                StartPosition = FormStartPosition.CenterScreen,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false,
+                BackColor = Color.FromArgb(10, 14, 39)
+            };
+
+            var lblTitle = new Label
+            {
+                Text = "🔥 MANUAL FIREWALL CONFIGURATION REQUIRED",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = Color.Orange,
+                Location = new Point(20, 20),
+                Size = new Size(550, 30),
+                BackColor = Color.Transparent
+            };
+
+            var txtInstructions = new RichTextBox
+            {
+                Text = @"CRITICAL: You must manually configure Windows Firewall for Network Security Monitor to work!
+
+WINDOWS DEFENDER FIREWALL CONFIGURATION STEPS:
+
+1. Press Windows Key + R, type 'wf.msc', press Enter
+2. In Windows Defender Firewall, click 'Inbound Rules' on the left
+3. Click 'New Rule...' on the right
+4. Select 'Port', click Next
+5. Select 'TCP', 'Specific local ports', enter: 80,443,8080
+6. Select 'Allow the connection', click Next
+7. Check all three boxes (Domain/Private/Public), click Next
+8. Name: 'NetworkSecurityMonitor-Allow'
+9. Description: 'Allow Network Security Monitor inbound connections'
+10. Click Finish
+
+11. Repeat steps 3-10 for 'Outbound Rules' if needed
+
+ALTERNATIVE - Command Line Method:
+1. Open Command Prompt as Administrator
+2. Run: netsh advfirewall firewall add rule name=""NetworkSecurityMonitor"" dir=in action=allow protocol=TCP localport=80,443,8080
+3. Run: netsh advfirewall firewall add rule name=""NetworkSecurityMonitor-Out"" dir=out action=allow protocol=TCP localport=80,443,8080
+
+IMPORTANT: Without proper firewall configuration, the security monitor cannot block malicious IPs or protect your network!
+
+Click 'I Have Configured Firewall' only after completing these steps.",
+                Font = new Font("Consolas", 9),
+                ForeColor = Color.LightGray,
+                BackColor = Color.FromArgb(20, 24, 49),
+                Location = new Point(20, 60),
+                Size = new Size(550, 300),
+                ReadOnly = true,
+                BorderStyle = BorderStyle.None
+            };
+
+            var btnConfigured = new Button
+            {
+                Text = "I Have Configured Firewall",
+                Location = new Point(200, 430),
+                Size = new Size(200, 35),
+                BackColor = Color.LimeGreen,
+                ForeColor = Color.Black,
+                FlatStyle = FlatStyle.Flat,
+                DialogResult = DialogResult.OK
+            };
+            btnConfigured.FlatAppearance.BorderColor = Color.LimeGreen;
+
+            manualDialog.Controls.AddRange(new Control[] { lblTitle, txtInstructions, btnConfigured });
+
+            var result = manualDialog.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                _config.FirewallConfigured = true;
+            }
+            else
+            {
+                _config.FirewallConfigured = false;
+                MessageBox.Show("Firewall configuration is required for the security monitor to work properly.", "Configuration Required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
         lblCompleteMessage.Text = $"🎉 Setup Complete!\n\n" +
             $"Your Network Security Monitor is now fully configured.\n\n" +
             $"Configuration Summary:\n" +
